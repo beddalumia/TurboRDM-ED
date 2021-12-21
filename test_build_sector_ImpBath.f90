@@ -244,10 +244,12 @@ program testEDNupNdw
      enddo
   enddo
   impurity_density_matrix2 = impurity_density_matrix
-  do i=1,4**Nimp
-     !PRINT FULL MATRIX
-     write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
-  enddo
+  if(Nimp<=2)then
+      do i=1,4**Nimp
+         !PRINT FULL MATRIX
+         write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
+      enddo
+  endif
   call stop_timer()
   print*, " "
 
@@ -300,10 +302,12 @@ program testEDNupNdw
         !
      enddo
   enddo
-  do i=1,4**Nimp
-     !PRINT FULL MATRIX
-     write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
-  enddo
+  if(Nimp<=2)then
+      do i=1,4**Nimp
+         !PRINT FULL MATRIX
+         write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
+      enddo
+  endif
   call stop_timer()
   print*, " "
 
