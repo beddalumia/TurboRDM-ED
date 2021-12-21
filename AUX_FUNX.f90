@@ -88,7 +88,7 @@ contains
   function get_bath_state(state) result(ibath)
     integer :: state
     integer :: ibath
-    ibath= Ibits(state,Nimp,Nbath)
+    ibath= Ibits(state,Nimp,Nbath_tot)
   end function get_bath_state
 
 

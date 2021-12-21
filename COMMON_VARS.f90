@@ -8,7 +8,7 @@ MODULE COMMON_VARS
   integer,public :: Nimp
   integer,public :: Nlat
   integer,public :: Norb
-  integer,public :: Nbath
+  integer,public :: Nbath, Nbath_tot
 
 
   !SPARSE IMP-BATH MAP AS AN OBJECT

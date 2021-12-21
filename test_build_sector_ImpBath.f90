@@ -46,7 +46,8 @@ program testEDNupNdw
   call parse_cmd_variable(Nup,"Nup",default=2)
   call parse_cmd_variable(Ndw,"Ndw",default=2)
   Nimp  = Nlat*Norb
-  Ns = Nimp+Nbath
+  Ns = Nimp*(1+Nbath)
+  Nbath_tot = Nimp*Nbath
   if(Nup+Ndw/=Ns)stop "ERROR: The given parameters are inconsistent."
   !
   !< Total number of levels for fermions. 1Fermion=2*spin
@@ -72,7 +73,7 @@ program testEDNupNdw
 
   !> BUILD SECTORS MAP (map + sp)
   write(unit,*)""
-  write(unit,"(A,2I3,A,I10)")"Test --- sector Nup, Ndw=",Nup,Ndw,"---- ",dim_sector_normal(Nup)*dim_sector_normal(Ndw)
+  write(unit,"(A,2I3,A,I10)")"Test --- sector: [ Nup Ndw ] = [",Nup,Ndw,"  ] ---- total dimension:",dim_sector_normal(Nup)*dim_sector_normal(Ndw)
   call build_sector_normal_sigma(Nup,Hup)
   call build_sector_normal_sigma(Ndw,Hdw)
 
@@ -90,11 +91,11 @@ program testEDNupNdw
      write(unit,"(A3)",advance="no")" - "
      write(unit,"(A7,A1,"//str(Nimp)//"A1,A1)",advance="no")"kimpUp","|",("b",j=1,Nimp),">"
      write(unit,"(A3)",advance="no")"+"
-     write(unit,"(A7,A1,"//str(Nbath)//"A1,A1)",advance="no")"kbathUp","|",("b",j=Nimp+1,Ns),">"
+     write(unit,"(A7,A1,"//str(Nbath_tot)//"A1,A1)",advance="no")"kbathUp","|",("b",j=Nimp+1,Ns),">"
      write(unit,"(A1)",advance="no")" "
      write(unit,"(A7,A1,"//str(Nimp)//"A1,A1)",advance="no")"kimpDw","|",("b",j=1,Nimp),">"
      write(unit,"(A3)",advance="no")"+"
-     write(unit,"(A7,A1,"//str(Nbath)//"A1,A1)",advance="no")"kbathDw","|",("b",j=Nimp+1,Ns),">"
+     write(unit,"(A7,A1,"//str(Nbath_tot)//"A1,A1)",advance="no")"kbathDw","|",("b",j=Nimp+1,Ns),">"
      write(unit,"(A1)",advance="yes")""
 
      do idw = 1,dim_sector_normal(Ndw)
@@ -124,11 +125,11 @@ program testEDNupNdw
            write(unit,"(A3)",advance="no")" - "
            write(unit,"(I7,A1,"//str(Nimp)//"I1,A1)",advance="no")iimpUp,"|",(ivecUp(j),j=1,Nimp),">"
            write(unit,"(A3)",advance="no")"+"
-           write(unit,"(I7,A1,"//str(Nbath)//"I1,A1)",advance="no")ibathUp,"|",(ivecUp(j),j=Nimp+1,Ns),">"
+           write(unit,"(I7,A1,"//str(Nbath_tot)//"I1,A1)",advance="no")ibathUp,"|",(ivecUp(j),j=Nimp+1,Ns),">"
            write(unit,"(A1)",advance="no")" "
            write(unit,"(I7,A1,"//str(Nimp)//"I1,A1)",advance="no")iimpDw,"|",(ivecDw(j),j=1,Nimp),">"
            write(unit,"(A3)",advance="no")"+"
-           write(unit,"(I7,A1,"//str(Nbath)//"I1,A1)",advance="no")ibathDw,"|",(ivecDw(j),j=Nimp+1,Ns),">"
+           write(unit,"(I7,A1,"//str(Nbath_tot)//"I1,A1)",advance="no")ibathDw,"|",(ivecDw(j),j=Nimp+1,Ns),">"
            write(unit,"(A1)",advance="yes")""
            !
            !
@@ -144,11 +145,11 @@ program testEDNupNdw
      write(unit,"(A3)",advance="no")" - "
      write(unit,"(A7,A1,"//str(Nimp)//"A1,A1)",advance="no")"KimpUp","|",("b",j=1,Nimp),">"
      write(unit,"(A3)",advance="no")"+"
-     write(unit,"(A7,A1,"//str(Nbath)//"A1,A1)",advance="no")"KbathUp","|",("b",j=Nimp+1,Ns),">"
+     write(unit,"(A7,A1,"//str(Nbath_tot)//"A1,A1)",advance="no")"KbathUp","|",("b",j=Nimp+1,Ns),">"
      write(unit,"(A1)",advance="no")" "
      write(unit,"(A7,A1,"//str(Nimp)//"A1,A1)",advance="no")"KimpDw","|",("b",j=1,Nimp),">"
      write(unit,"(A3)",advance="no")"+"
-     write(unit,"(A7,A1,"//str(Nbath)//"A1,A1)",advance="no")"KbathDw","|",("b",j=Nimp+1,Ns),">"
+     write(unit,"(A7,A1,"//str(Nbath_tot)//"A1,A1)",advance="no")"KbathDw","|",("b",j=Nimp+1,Ns),">"
      write(unit,*)""
   endif
 
@@ -220,14 +221,14 @@ program testEDNupNdw
      do iup = 1,dim_sector_normal(Nup)
         ivecUp = bdecomp(Hup%map(iup),Ns)
         Iimp = bjoin([IvecUp(1:Nimp),IvecDw(1:Nimp)],2*Nimp) + 1
-        Ibath= bjoin([IvecUp(Nimp+1:),IvecDw(Nimp+1:)],2*Nbath) + 1
+        Ibath= bjoin([IvecUp(Nimp+1:),IvecDw(Nimp+1:)],2*Nbath_tot) + 1
         !
         do jdw = 1,dim_sector_normal(Ndw)
            jvecDw = bdecomp(Hdw%map(jdw),Ns)
            do jup = 1,dim_sector_normal(Nup)
               jvecUp = bdecomp(Hup%map(jup),Ns)
               Jimp = bjoin([JvecUp(1:Nimp),JvecDw(1:Nimp)],2*Nimp) + 1
-              Jbath= bjoin([JvecUp(Nimp+1:),JvecDw(Nimp+1:)],2*Nbath) + 1
+              Jbath= bjoin([JvecUp(Nimp+1:),JvecDw(Nimp+1:)],2*Nbath_tot) + 1
               !
               if(Jbath/=Ibath)cycle
               i = iup + (idw-1)*dim_sector_normal(Nup)
