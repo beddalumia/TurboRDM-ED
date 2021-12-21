@@ -69,8 +69,8 @@ contains
        if(nsigma_ /= nsigma)cycle
        sector_indx = sector_indx+1
        Hsigma%map(sector_indx) = i
-       iimp = Ibits(i,0,Nimp)
-       ibath= Ibits(i,Nimp,Nbath)
+       iimp = get_imp_state(i)
+       ibath= get_bath_state(i)
        call sp_insert_state(Hsigma%sp,iimp,ibath,sector_indx)
     enddo
     !
