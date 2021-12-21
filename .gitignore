@@ -1,3 +1,10 @@
+# == BUILD&TEST ==
+build*/
+test*/
+[lL][oO][gG]*
+
+# == STANDARD FORTRAN IGNORES ==
+
 # Prerequisites
 *.d
 
