@@ -212,8 +212,8 @@ program testEDNupNdw
   allocate(impurity_density_matrix2(4**Nimp,4**Nimp))
 
 
-  !OLD CODE:
-  print*,"OLD CODE"
+  !SLOW ALGORITHM:
+  print*,"SLOW ALGORITHM"
   call start_timer()
   impurity_density_matrix=0d0
   do idw = 1,dim_sector_normal(Ndw)
@@ -242,20 +242,15 @@ program testEDNupNdw
   impurity_density_matrix2 = impurity_density_matrix
   write(*,*)"Impurity Density Matrix:"
   do i=1,4**Nimp
-     !PRINT FULL MATRIX (Nimp=1,2)
+     !PRINT FULL MATRIX
      write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
   enddo
-  if(Nimp==1)then
-     print*,1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-impurity_density_matrix(1,1))
-     print*,dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-impurity_density_matrix(2,2))
-     print*,dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-impurity_density_matrix(3,3))
-     print*,docc(1),abs(docc(1)-impurity_density_matrix(4,4))
-  endif
-  call stop_timer("OLD CODE time:")
+  call stop_timer()
+  print*, " "
 
 
-  !NEW CODE:
-  print*,"NEW CODE"
+  !FAST ALGORITHM:
+  print*,"FAST ALGORITHM"
   call start_timer()
   impurity_density_matrix=0d0
   do IimpUp=0,Hup%sp%Nimp_state-1
@@ -303,23 +298,35 @@ program testEDNupNdw
      enddo
   enddo
   do i=1,4**Nimp
-     !PRINT FULL MATRIX (Nimp=1,2)
+     !PRINT FULL MATRIX
      write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
   enddo
-  if(Nimp==1)then
-     print*,1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-impurity_density_matrix(1,1))
-     print*,dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-impurity_density_matrix(2,2))
-     print*,dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-impurity_density_matrix(3,3))
-     print*,docc(1),abs(docc(1)-impurity_density_matrix(4,4))
-  endif
-  call stop_timer("NEW CODE time:")
+  call stop_timer()
+  print*, " "
 
 
+  print*,    "****************************************************"
   if( any(abs(impurity_density_matrix2-impurity_density_matrix)/=0d0) )then
-     print*, "ERROR"
+     print*, "ERROR: SLOW and FAST algorithms fail to match!"
   else
-     print*,"SUCCESS"
+     print*, "SLOW and FAST algorithms match to machine-precision!"
   endif
+  print*,    "****************************************************"
+
+  if(Nimp==1)then
+   print*, " "
+   print*, "==============================================================="
+   print*, "BENCHMARK: LOCAL DENSITY-MATRIX versus SEMI-ANALYTICAL FORMULAE"
+   print*, "==============================================================="
+   print*, "------ ESTIMATE ------ | -------- ERROR ----------- "
+   print*,1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-impurity_density_matrix(1,1))
+   print*,dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-impurity_density_matrix(2,2))
+   print*,dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-impurity_density_matrix(3,3))
+   print*,docc(1),abs(docc(1)-impurity_density_matrix(4,4))
+   print*, "==============================================================="
+   print*, " "
+  endif
+
 
   call map_deallocate(Hup)
   call map_deallocate(Hdw)
