@@ -32,6 +32,7 @@ program testEDNupNdw
   real(8),dimension(:),allocatable :: state_dvec
   real(8),dimension(:,:),allocatable :: impurity_density_matrix
   real(8),dimension(:,:),allocatable :: impurity_density_matrix2
+  real(8),dimension(:,:),allocatable :: local_density_matrix
   real(8) :: peso
   real(8),dimension(:),allocatable   :: dens,dens_up,dens_dw
   real(8),dimension(:),allocatable   :: docc
@@ -212,7 +213,7 @@ program testEDNupNdw
   allocate(impurity_density_matrix2(4**Nimp,4**Nimp))
 
 
-  !SLOW ALGORITHM:
+  !>SLOW ALGORITHM:
   print*,"SLOW ALGORITHM"
   call start_timer()
   impurity_density_matrix=0d0
@@ -240,7 +241,6 @@ program testEDNupNdw
      enddo
   enddo
   impurity_density_matrix2 = impurity_density_matrix
-  write(*,*)"Impurity Density Matrix:"
   do i=1,4**Nimp
      !PRINT FULL MATRIX
      write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)
@@ -249,7 +249,7 @@ program testEDNupNdw
   print*, " "
 
 
-  !FAST ALGORITHM:
+  !>FAST ALGORITHM:
   print*,"FAST ALGORITHM"
   call start_timer()
   impurity_density_matrix=0d0
@@ -313,18 +313,20 @@ program testEDNupNdw
   endif
   print*,    "****************************************************"
 
-  if(Nimp==1)then
-   print*, " "
-   print*, "==============================================================="
-   print*, "BENCHMARK: LOCAL DENSITY-MATRIX versus SEMI-ANALYTICAL FORMULAE"
-   print*, "==============================================================="
-   print*, "------ ESTIMATE ------ | -------- ERROR ----------- "
-   print*,1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-impurity_density_matrix(1,1))
-   print*,dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-impurity_density_matrix(2,2))
-   print*,dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-impurity_density_matrix(3,3))
-   print*,docc(1),abs(docc(1)-impurity_density_matrix(4,4))
-   print*, "==============================================================="
-   print*, " "
+  !>SUBTRACING [from cluster-dm to local-dm]
+  call subtrace(impurity_density_matrix,local_density_matrix,Nlat-1)
+  if(Norb==1)then
+      print*, " "
+      print*, "============================================================================"
+      print*, "SUBTRACING [benchmark]: LOCAL DENSITY-MATRIX versus SEMI-ANALYTICAL FORMULAE"
+      print*, "============================================================================"
+      print*, "------ ESTIMATE ------ | -------- ERROR ----------- "
+      print*, 1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-local_density_matrix(1,1))
+      print*, dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-local_density_matrix(2,2))
+      print*, dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-local_density_matrix(3,3))
+      print*, docc(1),abs(docc(1)-local_density_matrix(4,4))
+      print*, "==============================================================="
+      print*, " "
   endif
 
 

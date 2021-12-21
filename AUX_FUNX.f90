@@ -48,9 +48,7 @@ contains
     !
   end subroutine build_sector_normal
   !
-
-
-
+  !
   subroutine build_sector_normal_sigma(nsigma,Hsigma)
     integer          :: nsigma
     type(sector_map) :: Hsigma
@@ -77,19 +75,88 @@ contains
     !
   end subroutine build_sector_normal_sigma
   !
-
-
+  !
+  !>AUXILIARY:
   function get_imp_state(state) result(iimp)
     integer :: state
     integer :: iimp
     iimp = Ibits(state,0,Nimp)
   end function get_imp_state
-
+  !
   function get_bath_state(state) result(ibath)
     integer :: state
     integer :: ibath
     ibath= Ibits(state,Nimp,Nbath_tot)
   end function get_bath_state
+
+
+
+
+
+  !+------------------------------------------------------------------+
+  !PURPOSE  :  subtrace the imp_dm by Ntrace(<Nlat) sites
+  !+------------------------------------------------------------------+
+  subroutine subtrace(imp_dm,red_dm,Ntrace)
+    real(8),dimension(4**Nimp,4**Nimp),intent(in)  :: imp_dm
+    real(8),dimension(:,:),allocatable,intent(out) :: red_dm
+    integer                           ,intent(in)  :: Ntrace
+    integer          :: i,j,io,jo,iIMP,jIMP,iRED,jRED,iTr,jTr
+    integer          :: Nimp_states,Nred_states,dimIMP,counter
+    !
+    if(Ntrace>=Nlat)stop "ERROR: cannot trace more than Nlat-1 sites."
+    if(Ntrace<0)    stop "ERROR: Ntrace cannot be negative."
+    !
+    Nimp_states=2*Nimp
+    Nred_states=2*Norb*(Nlat-Ntrace)
+    !
+    dimIMP = 4**Nred_states
+    allocate(red_dm(dimIMP,dimIMP)); red_dm=0.d0
+    !
+    write(*,*)
+    write(*,*) "=================="
+    write(*,*) "SUBTRACING [debug]"
+    write(*,*) "=================="
+    write(*,*)
+    counter = 0
+    do i = 1,4**Nimp
+       iIMP = i-1
+       write(*,*)"iIMP:"
+       call print_conf_int(iIMP,Nimp_states)
+       iRED = get_reduced_state(iIMP,Ntrace)
+       write(*,*)"iRED:"
+       call print_conf_int(iRED,Nred_states)
+       iTr  = get_tracing_state(iIMP,Ntrace)
+       write(*,*)"iTr:"
+       call print_conf_int(iTr,Nimp_states-Nred_states)
+       write(*,*) "--------"
+       do j = 1,4**Nimp
+          jIMP = j-1
+          jRED = get_reduced_state(jIMP,Ntrace)
+          jTr  = get_tracing_state(jIMP,Ntrace)
+          if(iTr/=jTr)cycle
+          io = iRED+1; jo = jRED+1
+          red_dm(io,jo) = red_dm(io,jo) + imp_dm(i,j)
+          counter = counter + 1
+          write(*,*) "counter: ", counter
+       enddo
+       write(*,*) "--------"
+    enddo
+    !
+  end subroutine subtrace
+  !
+  !
+  !>AUXILIARY
+  function get_reduced_state(state,Ntrace) result(iRED)
+    integer :: state, Ntrace
+    integer :: iRED
+    iRED= Ibits(state,0,2*Norb*(Nlat-Ntrace))
+  end function get_reduced_state 
+  !
+  function get_tracing_state(state,Ntrace) result(itrace)
+    integer :: state, Ntrace
+    integer :: itrace
+    itrace= Ibits(state,2*Norb*(Nlat-Ntrace),2*Nimp)
+  end function get_tracing_state
 
 
 
@@ -207,7 +274,7 @@ contains
 
 
   !+------------------------------------------------------------------+
-  !PURPOSE  : print configuration
+  !PURPOSE  : print configuration [debug printings, if needed]
   !+------------------------------------------------------------------+
   subroutine print_conf_int(i,Ntot)
     integer           :: dim,i,j,unit_,Ntot
@@ -218,11 +285,12 @@ contains
     write(fbt,'(I2.2)')Ntot
     fmt="(B"//adjustl(trim(fbt))//"."//adjustl(trim(fbt))//")"
     ivec = bdecomp(i,Ntot)
-    i= bjoin(ivec,Ntot)    
+    j = bjoin(ivec,Ntot) !We should NOT overwrite i, damn!
+    if(i/=j)stop "ERROR: inconsistent Ntot in <print_conf_int>" 
     write(unit_,"(I9,1x,A1)",advance="no")i,"|"
     write(unit_,"(10I1)",advance="no")(ivec(j),j=1,Ntot)
     write(unit_,"(A4)",advance="no")"> - "
-    write(unit_,fmt,advance="yes")i
+    write(unit_,fmt,advance="yes")j
   end subroutine print_conf_int
 
   subroutine print_conf_ivec(ivec)
