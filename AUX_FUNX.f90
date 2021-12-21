@@ -101,7 +101,7 @@ contains
     real(8),dimension(:,:),allocatable,intent(out) :: red_dm
     integer                           ,intent(in)  :: Ntrace
     integer          :: i,j,io,jo,iIMP,jIMP,iRED,jRED,iTr,jTr
-    integer          :: Nimp_states,Nred_states,dimIMP,counter
+    integer          :: Nimp_states,Nred_states,dimRED,counter
     !
     if(Ntrace>=Nlat)stop "ERROR: cannot trace more than Nlat-1 sites."
     if(Ntrace<0)    stop "ERROR: Ntrace cannot be negative."
@@ -109,13 +109,13 @@ contains
     Nimp_states=2*Nimp
     Nred_states=2*Norb*(Nlat-Ntrace)
     !
-    dimIMP = 4**Nred_states
-    allocate(red_dm(dimIMP,dimIMP)); red_dm=0.d0
+    dimRED = 2**Nred_states
+    allocate(red_dm(dimRED,dimRED)); red_dm=0.d0
     !
     write(*,*)
-    write(*,*) "=================="
-    write(*,*) "SUBTRACING [debug]"
-    write(*,*) "=================="
+    write(*,*) "================="
+    write(*,*) "SUBTRACING: DEBUG"
+    write(*,*) "================="
     write(*,*)
     counter = 0
     do i = 1,4**Nimp

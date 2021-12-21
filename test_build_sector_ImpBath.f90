@@ -24,30 +24,33 @@ program testEDNupNdw
   integer,allocatable              :: ivecUp(:),ivecDw(:)
   integer,allocatable              :: jvecUp(:),jvecDw(:)
   integer                          :: unit
+  character(len=32)                :: finput
   !
   !< CUSTOM TYPE: a user defined variable/structure which contains
   !the map between the states of a given sector S and those of the Fock space F
-  type(sector_map)                 :: H,Hup,Hdw
-
-  real(8),dimension(:),allocatable :: state_dvec
-  real(8),dimension(:,:),allocatable :: impurity_density_matrix
-  real(8),dimension(:,:),allocatable :: impurity_density_matrix2
-  real(8),dimension(:,:),allocatable :: local_density_matrix
-  real(8) :: peso
-  real(8),dimension(:),allocatable   :: dens,dens_up,dens_dw
-  real(8),dimension(:),allocatable   :: docc
+  type(sector_map)                     :: H,Hup,Hdw
+  !
+  real(8),dimension(:),allocatable     :: state_dvec
+  real(8),dimension(:,:),allocatable   :: impurity_density_matrix
+  real(8),dimension(:,:),allocatable   :: impurity_density_matrix2
+  real(8),dimension(:,:),allocatable   :: local_density_matrix
+  real(8)                              :: peso
+  real(8),dimension(:),allocatable     :: dens,dens_up,dens_dw
+  real(8),dimension(:),allocatable     :: docc
 
   !  
   !< define some useful parameters:
-  !
-  !< Number of spins: keep this low for better visualization
-  call parse_cmd_variable(Nbath,"Nbath",default=3)
-  call parse_cmd_variable(Nlat,"Nlat",default=1)
-  call parse_cmd_variable(Norb,"Norb",default=1)
-  call parse_cmd_variable(Nup,"Nup",default=2)
-  call parse_cmd_variable(Ndw,"Ndw",default=2)
+  call parse_cmd_variable(finput,"FINPUT",default='inputDM')
+  call parse_input_variable(Nbath,"Nbath",finput,default=3)
+  call parse_input_variable(Nlat,"Nlat",finput,default=1)
+  call parse_input_variable(Norb,"Norb",finput,default=1)
+  call parse_input_variable(Nup,"Nup",finput,default=2)
+  call parse_input_variable(Ndw,"Ndw",finput,default=2)
+  !< Number of impurity levels
   Nimp  = Nlat*Norb
+  !< Number of spins: keep this low for better visualization
   Ns = Nimp*(1+Nbath)
+  !< Total number of bath levels (per spin)
   Nbath_tot = Nimp*Nbath
   if(Nup+Ndw/=Ns)stop "ERROR: The given parameters are inconsistent."
   !
@@ -314,12 +317,21 @@ program testEDNupNdw
   print*,    "****************************************************"
 
   !>SUBTRACING [from cluster-dm to local-dm]
+  write(*,*)
+  write(*,*) "=================="
+  write(*,*) "SUBTRACING-ROUTINE"
+  write(*,*) "=================="
+  write(*,*)
   call subtrace(impurity_density_matrix,local_density_matrix,Nlat-1)
+  do i=1,size(local_density_matrix(:,1))
+     !PRINT REDUCED MATRIX
+      write(*,"(1000F7.3)")(local_density_matrix(i,j),j=1,size(local_density_matrix(:,1))) 
+  enddo
   if(Norb==1)then
       print*, " "
-      print*, "============================================================================"
-      print*, "SUBTRACING [benchmark]: LOCAL DENSITY-MATRIX versus SEMI-ANALYTICAL FORMULAE"
-      print*, "============================================================================"
+      print*, "==============================================================="
+      print*, "BENCHMARK: LOCAL DENSITY-MATRIX versus SEMI-ANALYTICAL FORMULAE"
+      print*, "==============================================================="
       print*, "------ ESTIMATE ------ | -------- ERROR ----------- "
       print*, 1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-local_density_matrix(1,1))
       print*, dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-local_density_matrix(2,2))

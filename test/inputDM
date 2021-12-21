@@ -1,0 +1,5 @@
+NBATH = 3
+NLAT  = 2
+NORB  = 1
+NUP   = 4
+NDW   = 4
