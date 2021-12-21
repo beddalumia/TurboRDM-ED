@@ -6,6 +6,8 @@ MODULE COMMON_VARS
   !COMMON VARIABLES
   integer,public :: Ns
   integer,public :: Nimp
+  integer,public :: Nlat
+  integer,public :: Norb
   integer,public :: Nbath
 
 

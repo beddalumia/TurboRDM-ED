@@ -40,11 +40,14 @@ program testEDNupNdw
   !< define some useful parameters:
   !
   !< Number of spins: keep this low for better visualization
-  call parse_cmd_variable(Ns,"Ns",default=4)
-  call parse_cmd_variable(Nimp,"Nimp",default=1)
+  call parse_cmd_variable(Nbath,"Nbath",default=3)
+  call parse_cmd_variable(Nlat,"Nlat",default=1)
+  call parse_cmd_variable(Norb,"Norb",default=1)
   call parse_cmd_variable(Nup,"Nup",default=2)
   call parse_cmd_variable(Ndw,"Ndw",default=2)
-  Nbath = Ns-Nimp
+  Nimp  = Nlat*Norb
+  Ns = Nimp+Nbath
+  if(Nup+Ndw/=Ns)stop "ERROR: The given parameters are inconsistent."
   !
   !< Total number of levels for fermions. 1Fermion=2*spin
   Ntot  = 2*Ns
