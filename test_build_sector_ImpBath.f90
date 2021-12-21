@@ -40,10 +40,10 @@ program testEDNupNdw
   !< define some useful parameters:
   !
   !< Number of spins: keep this low for better visualization
-  call parse_cmd_variable(Ns,"Ns",default=8)
-  call parse_cmd_variable(Nimp,"Nimp",default=2)
-  call parse_cmd_variable(Nup,"Nup",default=4)
-  call parse_cmd_variable(Ndw,"Ndw",default=4)
+  call parse_cmd_variable(Ns,"Ns",default=4)
+  call parse_cmd_variable(Nimp,"Nimp",default=1)
+  call parse_cmd_variable(Nup,"Nup",default=2)
+  call parse_cmd_variable(Ndw,"Ndw",default=2)
   Nbath = Ns-Nimp
   !
   !< Total number of levels for fermions. 1Fermion=2*spin
@@ -236,7 +236,7 @@ program testEDNupNdw
      enddo
   enddo
   impurity_density_matrix2 = impurity_density_matrix
-  write(*,*)"Impurity Density Matrix [or its diagonal]:"
+  write(*,*)"Impurity Density Matrix:"
   do i=1,4**Nimp
      !PRINT FULL MATRIX (Nimp=1,2)
      write(*,"(1000F7.3)")(impurity_density_matrix(i,j),j=1,4**Nimp)

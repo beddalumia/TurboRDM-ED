@@ -3,7 +3,7 @@ MODULE COMMON_VARS
   implicit none
   private
 
-  !COMMON VARIALES
+  !COMMON VARIABLES
   integer,public :: Ns
   integer,public :: Nimp
   integer,public :: Nbath
@@ -195,11 +195,12 @@ contains
 
 
   subroutine sp_return_intersection(sparse,Iimp,Jimp,array,Narray)
-    type(sparse_map),intent(inout)   :: sparse
-    integer,intent(in)               :: Iimp,Jimp
-    integer,dimension(:),allocatable :: array
-    type(sparse_row),pointer         :: rowI,rowJ
-    integer                          :: i,Narray
+    type(sparse_map)                              :: sparse
+    integer,intent(in)                            :: Iimp,Jimp
+    integer,intent(out),dimension(:),allocatable  :: array
+    type(sparse_row),pointer                      :: rowI,rowJ
+    integer                                       :: i
+    integer,intent(out)                           :: Narray
     !
     if(allocated(array))deallocate(array)    
     if((Iimp<0) .OR. (Jimp<0)) stop "sp_return_intersection error: Iimp OR Jimp < 0 "
