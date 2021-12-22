@@ -180,7 +180,57 @@ contains
   end function get_tracing_state
 
 
-
+  !+------------------------------------------------------------------+
+  !PURPOSE  :  reduce a generic dm by tracing out just one site
+  !+------------------------------------------------------------------+
+  subroutine sitetrace(big_dm,red_dm,Nsites)
+   real(8),dimension(:,:),allocatable,intent(in)  :: big_dm
+   real(8),dimension(:,:),allocatable,intent(out) :: red_dm
+   integer                           ,intent(in)  :: Nsites
+   integer         :: i,j,io,jo,iUP,iDW,jUP,jDW
+   integer         :: iIMPup,iIMPdw,jIMPup,jIMPdw
+   integer         :: iREDup,iREDdw,jREDup,jREDdw
+   integer         :: iTrUP,iTrDW,jTrUP,jTrDW
+   integer         :: Nbig,Nred,dimBIG,dimRED
+   !
+   Nbig=Norb*Nsites
+   Nred=Norb*(Nsites-1)
+   !
+   dimBIG = 4**Nbig
+   dimRED = 4**Nred
+   !
+   if(size(big_dm(:,1))/=dimBIG)stop "ERROR: Nsites is not consistent with the given big_dm"
+   !
+   allocate(red_dm(dimRED,dimRED)); red_dm=0.d0
+   !
+   do iUP = 1,2**Nbig
+      do iDW = 1,2**Nbig
+           i = iUP + (iDW-1)*2**Nbig
+           iIMPup = iup-1
+           iIMPdw = idw-1
+           iREDup = Ibits(iIMPup,0,Norb*(Nsites-1))
+           iREDdw = Ibits(iIMPdw,0,Norb*(Nsites-1))
+           iTrUP  = Ibits(iIMPup,Norb*(Nsites-1),Nbig)
+           iTrDW  = Ibits(iIMPdw,Norb*(Nsites-1),Nbig)
+           do jUP = 1,2**Nbig
+              do jDW = 1,2**Nbig
+                    j = jUP + (jDW-1)*2**Nbig
+                    jIMPup = jup-1
+                    jIMPdw = jdw-1
+                    jREDup = Ibits(jIMPup,0,Norb*(Nsites-1))
+                    jREDdw = Ibits(jIMPdw,0,Norb*(Nsites-1))
+                    jTrUP  = Ibits(jIMPup,Norb*(Nsites-1),Nbig)
+                    jTrDW  = Ibits(jIMPdw,Norb*(Nsites-1),Nbig)
+                    if(jTrUP/=iTrUP.or.jTrDW/=iTrDW)cycle
+                    io = (iREDup+1) + iREDdw*2**Nred
+                    jo = (jREDup+1) + jREDdw*2**Nred
+                    red_dm(io,jo) = red_dm(io,jo) + big_dm(i,j)
+              enddo
+           enddo
+      enddo
+   enddo
+   !
+ end subroutine sitetrace
 
   
   !+------------------------------------------------------------------+
