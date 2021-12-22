@@ -22,15 +22,15 @@ endif
 
 all: FLAG:=${FFLAG}
 all: $(OBJS)
-	${FC} ${FLAG} ${OBJS} test_build_sector_ImpBath.f90 -o test/test_build_sector_ImpBath ${GLOB_INC} ${GLOB_LIB}
+	${FC} ${FLAG} ${OBJS} main.f90 -o test/testRDM_ED_NupNdw ${GLOB_INC} ${GLOB_LIB}
 
 debug: FLAG:=${DFLAG}
 debug: ${OBJS}
-	${FC} ${FLAG} ${OBJS} test_build_sector_ImpBath.f90 -o test/test_build_sector_ImpBath ${GLOB_INC} ${GLOB_LIB}
+	${FC} ${FLAG} ${OBJS} main.f90 -o test/testRDM_ED_NupNdw ${GLOB_INC} ${GLOB_LIB}
 
 clean: 
 	@echo "Cleaning:"
-	@rm -fv *.mod *.o *~ test/test_build_sector_ImpBath
+	@rm -fv *.mod *.o *~ test/testRDM_ED_NupNdw
 	@echo ""
 
 .f90.o:	

@@ -1,4 +1,4 @@
-program testEDNupNdw
+program testRDM_ED_NupNdw
   USE SCIFOR
   !< use COMMON_VARIABLES module to load global variables 
   USE COMMON_VARS
@@ -32,8 +32,9 @@ program testEDNupNdw
   !
   real(8),dimension(:),allocatable     :: state_dvec
   real(8),dimension(:,:),allocatable   :: impurity_density_matrix
-  real(8),dimension(:,:),allocatable   :: impurity_density_matrix2
-  real(8),dimension(:,:),allocatable   :: local_density_matrix
+  real(8),dimension(:,:),allocatable   :: impurity_density_matrix_
+  real(8),dimension(:,:),allocatable   :: reduced_density_matrix
+  real(8),dimension(:,:),allocatable   :: reduced_density_matrix_
   real(8)                              :: peso
   real(8),dimension(:),allocatable     :: dens,dens_up,dens_dw
   real(8),dimension(:),allocatable     :: docc
@@ -48,6 +49,7 @@ program testEDNupNdw
   call parse_input_variable(Ndw,"Ndw",finput,default=4)
   call parse_input_variable(verbose,"verbose",finput,default=.false.)
   call parse_input_variable(fast,"fast",finput,default=.true.)
+  call parse_input_variable(random,"random",finput,default=.false.)
   !< Number of impurity levels
   Nimp  = Nlat*Norb
   !< Number of spins: keep this low for better visualization
@@ -191,8 +193,8 @@ program testEDNupNdw
   !> ALLOCATE AND BUILD A VECTOR OF THE SECTOR: i.e. the linear combination of the basis using random/unit coefficient.
   !> NORMALIZED
   allocate(state_dvec(Dim))
-  ! call mt_random(state_dvec)
   state_dvec=1d0
+  if(random)call mt_random(state_dvec)
   state_dvec = state_dvec/sqrt(dot_product(state_dvec,state_dvec))
 
 
@@ -224,7 +226,7 @@ program testEDNupNdw
 
   !> ALLOCATE IMP DENSITY MATRIX (and a spare copy to test)
   allocate(impurity_density_matrix(4**Nimp,4**Nimp))
-  allocate(impurity_density_matrix2(4**Nimp,4**Nimp))
+  allocate(impurity_density_matrix_(4**Nimp,4**Nimp))
 
 
   !>SLOW ALGORITHM:
@@ -258,7 +260,7 @@ program testEDNupNdw
             enddo
          enddo
       enddo
-      impurity_density_matrix2 = impurity_density_matrix
+      impurity_density_matrix_ = impurity_density_matrix
       if(Nimp<=2)then
             do i=1,4**Nimp
                !PRINT FULL MATRIX
@@ -276,42 +278,46 @@ program testEDNupNdw
   impurity_density_matrix=0d0
   do IimpUp=0,Hup%sp%Nimp_state-1
      do JimpUp=0,Hup%sp%Nimp_state-1
+        !Finding the unique bath states connecting IimpUp and JimpUp -> InterUp(:)
         call sp_return_intersection(Hup%sp,IimpUp,JimpUp,InterUp,LenInterUp)
-        if(LenInterUp==0)cycle  !there are not bath states intersecting IimpUp,JimpUp
+        if(LenInterUp==0)cycle  !there are no bath states intersecting IimpUp,JimpUp
         do IimpDw=0,Hdw%sp%Nimp_state-1
            do JimpDw=0,Hdw%sp%Nimp_state-1
+              !Finding the unique bath states connecting IimpDw and JimpDw -> InterDw(:)
               call sp_return_intersection(Hdw%sp,IimpDw,JimpDw,InterDw,LenInterDw)
-              if(LenInterDw==0)cycle  !there are not bath states intersecting IimpDw,JimpDw
-              !
-              !Arrived here you have finally determined the IbathUp,IbathDw states to loop on
-              !We shall use them to build back the Fock space states (Iup,Idw),(Jup,Jdw)
-              !From them we can use the inverse map to retrieve (iup,idw), (jup,jdw) and
-              !finally i,j:
-              do bup=1,LenInterUp
+              if(LenInterDw==0)cycle  !there are no bath states intersecting IimpDw,JimpDw
+              !------------------------------------------------------------------------------------
+              !Arrived here we have finally determined the {IbathUp,IbathDw} states to trace on.
+              !We shall use them to build back the Fock space states (IimpSIGMA,IbathSIGMA) and
+              !through those search the map to retrieve the formal labels i=(iUP,iDW), j=(jUP,jDW)
+              !------------------------------------------------------------------------------------
+              do bup=1,LenInterUp !=== >>> THE TRACE OVER THE BATH <<< ============================
                  IbathUp = InterUp(bup)
                  do bdw=1,LenInterDw
                     IbathDw = InterDw(bdw)
-
-                    !I:
-                    !Allowed spin Fock spaces Indices:
-                    !Corresponding sector indices per spin
-                    !Global sector index
+                    !-----------------------------------------------------
+                    !Allowed spin Fock Indices: 
                     Iup= binary_search(Hup%map,IimpUp + 2**Nimp*IbathUp)
                     Idw= binary_search(Hdw%map,IimpDw + 2**Nimp*IbathDw)
+                    !Global sector index:
                     i  = Iup + (Idw-1)*dim_sector_normal(Nup)
-
-
-                    !J: same
+                    !-----------------------------------------------------
+                    !Allowed spin Fock Jndices: 
                     Jup= binary_search(Hup%map,JimpUp + 2**Nimp*IbathUp)
                     Jdw= binary_search(Hdw%map,JimpDw + 2**Nimp*IbathDw)
+                    !Global sector jndex:
                     j  = Jup + (Jdw-1)*dim_sector_normal(Nup)
-
-                    io = (IimpUp+1) + 2**Nimp*IimpDw !
-                    jo = (JimpUp+1) + 2**Nimp*JimpDw !
+                    !-----------------------------------------------------
+                    !Final Lin-Gubernatis composition for the impurity
+                    io = (IimpUp+1) + 2**Nimp*IimpDw
+                    jo = (JimpUp+1) + 2**Nimp*JimpDw
+                    !------------------------------------------------------------------
+                    !(i,j)_th contribution to the (io,jo)_th element of \rho_IMP
                     impurity_density_matrix(io,jo) = impurity_density_matrix(io,jo) + &
                          state_dvec(i)*state_dvec(j)
+                    !------------------------------------------------------------------
                  enddo
-              enddo
+              enddo !==============================================================================
               !
            enddo
         enddo
@@ -327,9 +333,10 @@ program testEDNupNdw
   call stop_timer()
   print*, " "
 
+  !>CROSSCHECK ALGORITHMS
   if(.not.fast)then
     print*,    "****************************************************"
-    if( any(abs(impurity_density_matrix2-impurity_density_matrix)/=0d0) )then
+    if( any(abs(impurity_density_matrix_-impurity_density_matrix)/=0d0) )then
       print*, "ERROR: SLOW and FAST algorithms fail to match!"
     else
       print*, "SLOW and FAST algorithms match to machine-precision!"
@@ -337,32 +344,43 @@ program testEDNupNdw
     print*,    "****************************************************"
   endif
 
-  !>SUBTRACING [from cluster-dm to local-dm]
+  !>SUBTRACING
   write(*,*)
   write(*,*) "=================="
   write(*,*) "SUBTRACING-ROUTINE"
   write(*,*) "=================="
   write(*,*)
-  print*,"LOCAL DENSITY MATRIX"
-  call subtrace(impurity_density_matrix,local_density_matrix,Nlat-1)
-  do i=1,size(local_density_matrix(:,1))
-     !PRINT REDUCED MATRIX
-     write(*,"(1000F7.3)")(local_density_matrix(i,j),j=1,size(local_density_matrix(:,1))) 
+  !<From cluster-dm to all reduced dms [increasing Ntrace]
+  print*,"ALL REDUCED DENSITY MATRICES"
+  do k=1,Nlat-1
+     call subtrace(impurity_density_matrix,reduced_density_matrix,k)
+     DIM = size(reduced_density_matrix(:,1)) 
+     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM) 
+     do i=1,DIM
+        !PRINT REDUCED MATRIX
+        write(*,"(1000F7.3)")(reduced_density_matrix(i,j),j=1,DIM) 
+     enddo
   enddo
+  !
+  !<TODO: Recursive version [everytime Ntrace=1]
+  !       > Useful to crosscheck the subtracing recipe
+  !         ideally we can then trace site by site and
+  !         check against the direct Ntrace>1 function 
+  !       > Requires to change subtrace()!
+  !
   if(Norb==1)then
       print*, " "
       print*, "==============================================================="
       print*, "BENCHMARK: LOCAL DENSITY-MATRIX versus SEMI-ANALYTICAL FORMULAE"
       print*, "==============================================================="
       print*, "------ ESTIMATE ------ | -------- ERROR ----------- "
-      print*, 1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-local_density_matrix(1,1))
-      print*, dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-local_density_matrix(2,2))
-      print*, dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-local_density_matrix(3,3))
-      print*, docc(1),abs(docc(1)-local_density_matrix(4,4))
+      print*, 1-dens_up(1)-dens_dw(1)+docc(1),abs(1-dens_up(1)-dens_dw(1)+docc(1)-reduced_density_matrix(1,1))
+      print*, dens_up(1)-docc(1),abs(dens_up(1)-docc(1)-reduced_density_matrix(2,2))
+      print*, dens_dw(1)-docc(1),abs(dens_dw(1)-docc(1)-reduced_density_matrix(3,3))
+      print*, docc(1),abs(docc(1)-reduced_density_matrix(4,4))
       print*, "==============================================================="
       print*, " "
   endif
-
 
   call map_deallocate(Hup)
   call map_deallocate(Hdw)
@@ -376,4 +394,12 @@ program testEDNupNdw
 
 
 
-end program testEDNupNdw
+end program testRDM_ED_NupNdw
+
+
+
+
+
+
+
+

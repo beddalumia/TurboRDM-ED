@@ -1,6 +1,6 @@
 NBATH = 1
-NLAT  = 2
-NORB  = 2
+NLAT  = 4
+NORB  = 1
 NUP   = 4
 NDW   = 4
 

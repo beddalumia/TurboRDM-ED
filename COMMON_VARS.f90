@@ -11,7 +11,7 @@ MODULE COMMON_VARS
   integer,public :: Nbath, Nbath_tot
 
   !FLAGS
-  logical,public :: verbose,fast
+  logical,public :: verbose,fast,random
 
 
   !SPARSE IMP-BATH MAP AS AN OBJECT
