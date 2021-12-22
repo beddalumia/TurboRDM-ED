@@ -96,9 +96,9 @@ contains
   !+------------------------------------------------------------------+
   !PURPOSE  :  reduce the imp_dm by tracing out Ntrace ( < Nlat) sites
   !+------------------------------------------------------------------+
-  subroutine subtrace(imp_dm,red_dm,Ntrace)
-    real(8),dimension(4**Nimp,4**Nimp),intent(in)  :: imp_dm
+  subroutine subtrace(red_dm,imp_dm,Ntrace)
     real(8),dimension(:,:),allocatable,intent(out) :: red_dm
+    real(8),dimension(4**Nimp,4**Nimp),intent(in)  :: imp_dm
     integer                           ,intent(in)  :: Ntrace
     integer         :: i,j,io,jo,iUP,iDW,jUP,jDW
     integer         :: iIMPup,iIMPdw,jIMPup,jIMPdw
@@ -183,9 +183,9 @@ contains
   !+------------------------------------------------------------------+
   !PURPOSE  :  reduce a generic dm by tracing out just one site
   !+------------------------------------------------------------------+
-  subroutine sitetrace(big_dm,red_dm,Nsites)
-   real(8),dimension(:,:),allocatable,intent(in)  :: big_dm
+  subroutine sitetrace(red_dm,big_dm,Nsites)
    real(8),dimension(:,:),allocatable,intent(out) :: red_dm
+   real(8),dimension(:,:),allocatable,intent(in)  :: big_dm
    integer                           ,intent(in)  :: Nsites
    integer         :: i,j,io,jo,iUP,iDW,jUP,jDW
    integer         :: iIMPup,iIMPdw,jIMPup,jIMPdw
