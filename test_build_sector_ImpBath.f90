@@ -165,7 +165,7 @@ program testEDNupNdw
   do iimpUp=0,Hup%sp%Nimp_state-1
      do jimpUp=0,Hup%sp%Nimp_state-1
         call sp_return_intersection(Hup%sp,iimpUp,jimpUp,InterUp,LenInterUp)
-        write(unit,*)"Intersect Iimp="//str(iimpUp)//", Iimp="//str(jimpUp)
+        write(unit,*)"Intersect IimpUP="//str(iimpUp)//", IimpUP="//str(jimpUp)
         write(unit,*)"Size(Intersection)",LenInterUp
         if(LenInterUp==0)cycle
         write(unit,*)"Intersection:"

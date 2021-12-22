@@ -94,22 +94,24 @@ contains
 
 
   !+------------------------------------------------------------------+
-  !PURPOSE  :  subtrace the imp_dm by Ntrace(<Nlat) sites
+  !PURPOSE  :  reduce the imp_dm by tracing out Ntrace ( < Nlat) sites
   !+------------------------------------------------------------------+
   subroutine subtrace(imp_dm,red_dm,Ntrace)
     real(8),dimension(4**Nimp,4**Nimp),intent(in)  :: imp_dm
     real(8),dimension(:,:),allocatable,intent(out) :: red_dm
     integer                           ,intent(in)  :: Ntrace
-    integer          :: i,j,io,jo,iIMP,jIMP,iRED,jRED,iTr,jTr
-    integer          :: Nimp_states,Nred_states,dimRED,counter
+    integer         :: i,j,io,jo,iUP,iDW,jUP,jDW
+    integer         :: iIMPup,iIMPdw,jIMPup,jIMPdw
+    integer         :: iREDup,iREDdw,jREDup,jREDdw
+    integer         :: iTrUP,iTrDW,jTrUP,jTrDW
+    integer         :: Nred,dimRED,counter
     !
     if(Ntrace>=Nlat)stop "ERROR: cannot trace more than Nlat-1 sites."
     if(Ntrace<0)    stop "ERROR: Ntrace cannot be negative."
     !
-    Nimp_states=2*Nimp
-    Nred_states=2*Norb*(Nlat-Ntrace)
+    Nred=Norb*(Nlat-Ntrace)
     !
-    dimRED = 2**Nred_states
+    dimRED = 4**Nred
     allocate(red_dm(dimRED,dimRED)); red_dm=0.d0
     !
     write(*,*)
@@ -118,28 +120,41 @@ contains
     write(*,*) "================="
     write(*,*)
     counter = 0
-    do i = 1,4**Nimp
-       iIMP = i-1
-       write(*,*)"iIMP:"
-       call print_conf_int(iIMP,Nimp_states)
-       iRED = get_reduced_state(iIMP,Ntrace)
-       write(*,*)"iRED:"
-       call print_conf_int(iRED,Nred_states)
-       iTr  = get_tracing_state(iIMP,Ntrace)
-       write(*,*)"iTr:"
-       call print_conf_int(iTr,Nimp_states-Nred_states)
-       write(*,*) "--------"
-       do j = 1,4**Nimp
-          jIMP = j-1
-          jRED = get_reduced_state(jIMP,Ntrace)
-          jTr  = get_tracing_state(jIMP,Ntrace)
-          if(iTr/=jTr)cycle
-          io = iRED+1; jo = jRED+1
-          red_dm(io,jo) = red_dm(io,jo) + imp_dm(i,j)
-          counter = counter + 1
-          write(*,*) "counter: ", counter
+    do iUP = 1,2**Nimp
+       do iDW = 1,2**Nimp
+            i = iUP + (iDW-1)*2**Nimp
+            iIMPup = iup-1
+            iIMPdw = idw-1
+            write(*,*)"iIMPup:"
+            call print_conf_int(iIMPup,Nimp)
+            iREDup = get_reduced_state(iIMPup,Ntrace)
+            iREDdw = get_reduced_state(iIMPdw,Ntrace)
+            write(*,*)"iREDup:"
+            call print_conf_int(iREDup,Nred)
+            iTrUP  = get_tracing_state(iIMPup,Ntrace)
+            iTrDW  = get_tracing_state(iIMPdw,Ntrace)
+            write(*,*)"iTrUP:"
+            call print_conf_int(iTrUP,Nimp-Nred)
+            write(*,*) "--------"
+            do jUP = 1,2**Nimp
+               do jDW = 1,2**Nimp
+                     j = jUP + (jDW-1)*2**Nimp
+                     jIMPup = jup-1
+                     jIMPdw = jdw-1
+                     jREDup = get_reduced_state(jIMPup,Ntrace)
+                     jREDdw = get_reduced_state(jIMPdw,Ntrace)
+                     jTrUP  = get_tracing_state(jIMPup,Ntrace)
+                     jTrDW  = get_tracing_state(jIMPdw,Ntrace)
+                     if(jTrUP/=iTrUP.or.jTrDW/=jTrDW)cycle
+                     io = (iREDup+1) + iREDdw*2**Nred
+                     jo = (jREDup+1) + jREDdw*2**Nred
+                     red_dm(io,jo) = red_dm(io,jo) + imp_dm(i,j)
+                     counter = counter + 1
+                     write(*,*) "counter: ", counter
+               enddo
+            enddo
+          write(*,*) "--------"
        enddo
-       write(*,*) "--------"
     enddo
     !
   end subroutine subtrace
@@ -149,13 +164,13 @@ contains
   function get_reduced_state(state,Ntrace) result(iRED)
     integer :: state, Ntrace
     integer :: iRED
-    iRED= Ibits(state,0,2*Norb*(Nlat-Ntrace))
+    iRED= Ibits(state,0,Norb*(Nlat-Ntrace))
   end function get_reduced_state 
   !
   function get_tracing_state(state,Ntrace) result(itrace)
     integer :: state, Ntrace
     integer :: itrace
-    itrace= Ibits(state,2*Norb*(Nlat-Ntrace),2*Nimp)
+    itrace= Ibits(state,Norb*(Nlat-Ntrace),Nimp)
   end function get_tracing_state
 
 
