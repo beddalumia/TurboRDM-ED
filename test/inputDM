@@ -1,5 +1,8 @@
-NBATH = 3
+NBATH = 1
 NLAT  = 2
-NORB  = 1
+NORB  = 2
 NUP   = 4
 NDW   = 4
+
+VERBOSE=F
+FAST=T

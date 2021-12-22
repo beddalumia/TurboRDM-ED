@@ -10,6 +10,9 @@ MODULE COMMON_VARS
   integer,public :: Norb
   integer,public :: Nbath, Nbath_tot
 
+  !FLAGS
+  logical,public :: verbose,fast
+
 
   !SPARSE IMP-BATH MAP AS AN OBJECT
   type sparse_row

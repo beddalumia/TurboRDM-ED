@@ -114,28 +114,32 @@ contains
     dimRED = 4**Nred
     allocate(red_dm(dimRED,dimRED)); red_dm=0.d0
     !
-    write(*,*)
-    write(*,*) "================="
-    write(*,*) "SUBTRACING: DEBUG"
-    write(*,*) "================="
-    write(*,*)
-    counter = 0
+    if(verbose)then
+      write(*,*)
+      write(*,*) "================="
+      write(*,*) "SUBTRACING: DEBUG"
+      write(*,*) "================="
+      write(*,*)
+      counter = 0
+    endif
     do iUP = 1,2**Nimp
        do iDW = 1,2**Nimp
             i = iUP + (iDW-1)*2**Nimp
             iIMPup = iup-1
             iIMPdw = idw-1
-            write(*,*)"iIMPup:"
-            call print_conf_int(iIMPup,Nimp)
             iREDup = get_reduced_state(iIMPup,Ntrace)
             iREDdw = get_reduced_state(iIMPdw,Ntrace)
-            write(*,*)"iREDup:"
-            call print_conf_int(iREDup,Nred)
             iTrUP  = get_tracing_state(iIMPup,Ntrace)
             iTrDW  = get_tracing_state(iIMPdw,Ntrace)
-            write(*,*)"iTrUP:"
-            call print_conf_int(iTrUP,Nimp-Nred)
-            write(*,*) "--------"
+            if(verbose)then
+               write(*,*)"iIMPup:"
+               call print_conf_int(iIMPup,Nimp)
+               write(*,*)"iREDup:"
+               call print_conf_int(iREDup,Nred)
+               write(*,*)"iTrUP:"
+               call print_conf_int(iTrUP,Nimp-Nred)
+               write(*,*) "--------"
+            endif
             do jUP = 1,2**Nimp
                do jDW = 1,2**Nimp
                      j = jUP + (jDW-1)*2**Nimp
@@ -145,15 +149,17 @@ contains
                      jREDdw = get_reduced_state(jIMPdw,Ntrace)
                      jTrUP  = get_tracing_state(jIMPup,Ntrace)
                      jTrDW  = get_tracing_state(jIMPdw,Ntrace)
-                     if(jTrUP/=iTrUP.or.jTrDW/=jTrDW)cycle
+                     if(jTrUP/=iTrUP.or.jTrDW/=iTrDW)cycle
                      io = (iREDup+1) + iREDdw*2**Nred
                      jo = (jREDup+1) + jREDdw*2**Nred
                      red_dm(io,jo) = red_dm(io,jo) + imp_dm(i,j)
-                     counter = counter + 1
-                     write(*,*) "counter: ", counter
+                     if(verbose)then
+                        counter = counter + 1
+                        write(*,*) "counter: ", counter
+                     endif
                enddo
             enddo
-          write(*,*) "--------"
+          if(verbose) write(*,*) "--------"
        enddo
     enddo
     !
