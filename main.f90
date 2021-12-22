@@ -338,7 +338,7 @@ program testRDM_ED_NupNdw
   if(.not.fast)then
     print*,    "***************************************************"
     if( any(abs(impurity_density_matrix_-impurity_density_matrix)/=0d0) )then
-      print*, "ERROR: SLOW and FAST algorithms fail to match!"
+      print*, "ERROR: SLOW and FAST algorithms fail to match"
     else
       print*, "SLOW and FAST algorithms match to machine-precision"
     endif
@@ -355,29 +355,29 @@ program testRDM_ED_NupNdw
   big_density_matrix = impurity_density_matrix
   do k=1,Nlat-1
      !<From cluster-dm to all reduced dms [increasing Ntrace]
-     call subtrace(reduced_density_matrix,impurity_density_matrix,k)
+     call subtrace(reduced_density_matrix,impurity_density_matrix,Nlat,Nlat-k)
      DIM = size(reduced_density_matrix(:,1)) 
-     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [SUBTRACE()]" 
+     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [DIRECT]" 
      do i=1,DIM
         !PRINT REDUCED MATRIX
         write(*,"(1000F7.3)")(reduced_density_matrix(i,j),j=1,DIM) 
      enddo
      !<From cluster-dm to all reduced dms [site by site]
-     call sitetrace(small_density_matrix,big_density_matrix,Nlat-k+1)
+     call subtrace(small_density_matrix,big_density_matrix,Nlat-k+1,Nlat-k)
      DIM = size(small_density_matrix(:,1)) 
-     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [SITETRACE()]"  
+     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [ITERATIVE]"  
      do i=1,DIM
         !PRINT REDUCED MATRIX
         write(*,"(1000F7.3)")(small_density_matrix(i,j),j=1,DIM) 
      enddo
      !>CROSSCHECK ALGORITHMS
-     print*,    "***********************************************"
+     print*,    "****************************************************"
      if( any(abs(reduced_density_matrix-small_density_matrix)>0.00001d0) )then
-       print*, "ERROR: subtrace() and sitetrace() fail to match!"
+       print*, "ERROR: DIRECT and ITERATIVE subtracings fail to match"
      else
-       print*, "subtrace() and sitetrace() match up to e-05"
+       print*, "DIRECT and ITERATIVE subtracings match up to e-05"
      endif
-    print*,    "************************************************"
+    print*,    "*****************************************************"
     !
     deallocate(big_density_matrix)
     big_density_matrix = small_density_matrix

@@ -96,7 +96,7 @@ contains
   !+------------------------------------------------------------------+
   !PURPOSE  :  reduce the imp_dm by tracing out Ntrace ( < Nlat) sites
   !+------------------------------------------------------------------+
-  subroutine subtrace(red_dm,imp_dm,Ntrace)
+  subroutine subtrace_imp(red_dm,imp_dm,Ntrace) !Left here for the record
     real(8),dimension(:,:),allocatable,intent(out) :: red_dm
     real(8),dimension(4**Nimp,4**Nimp),intent(in)  :: imp_dm
     integer                           ,intent(in)  :: Ntrace
@@ -163,7 +163,7 @@ contains
        enddo
     enddo
     !
-  end subroutine subtrace
+  end subroutine subtrace_imp
   !
   !
   !>AUXILIARY
@@ -180,21 +180,22 @@ contains
   end function get_tracing_state
 
 
-  !+------------------------------------------------------------------+
-  !PURPOSE  :  reduce a generic dm by tracing out just one site
-  !+------------------------------------------------------------------+
-  subroutine sitetrace(red_dm,big_dm,Nsites)
+  !+---------------------------------------------------------------------+
+  !PURPOSE  :  reduce a generic dm by tracing out a given number of sites
+  !+---------------------------------------------------------------------+
+  subroutine subtrace(red_dm,big_dm,bigNsites,redNsites)
    real(8),dimension(:,:),allocatable,intent(out) :: red_dm
    real(8),dimension(:,:),allocatable,intent(in)  :: big_dm
-   integer                           ,intent(in)  :: Nsites
+   integer                           ,intent(in)  :: bigNsites
+   integer                           ,intent(in)  :: redNsites
    integer         :: i,j,io,jo,iUP,iDW,jUP,jDW
    integer         :: iIMPup,iIMPdw,jIMPup,jIMPdw
    integer         :: iREDup,iREDdw,jREDup,jREDdw
    integer         :: iTrUP,iTrDW,jTrUP,jTrDW
    integer         :: Nbig,Nred,dimBIG,dimRED
    !
-   Nbig=Norb*Nsites
-   Nred=Norb*(Nsites-1)
+   Nbig=Norb*bigNsites
+   Nred=Norb*redNsites
    !
    dimBIG = 4**Nbig
    dimRED = 4**Nred
@@ -208,19 +209,19 @@ contains
            i = iUP + (iDW-1)*2**Nbig
            iIMPup = iup-1
            iIMPdw = idw-1
-           iREDup = Ibits(iIMPup,0,Norb*(Nsites-1))
-           iREDdw = Ibits(iIMPdw,0,Norb*(Nsites-1))
-           iTrUP  = Ibits(iIMPup,Norb*(Nsites-1),Nbig)
-           iTrDW  = Ibits(iIMPdw,Norb*(Nsites-1),Nbig)
+           iREDup = Ibits(iIMPup,0,Nred)
+           iREDdw = Ibits(iIMPdw,0,Nred)
+           iTrUP  = Ibits(iIMPup,Nred,Nbig)
+           iTrDW  = Ibits(iIMPdw,Nred,Nbig)
            do jUP = 1,2**Nbig
               do jDW = 1,2**Nbig
                     j = jUP + (jDW-1)*2**Nbig
                     jIMPup = jup-1
                     jIMPdw = jdw-1
-                    jREDup = Ibits(jIMPup,0,Norb*(Nsites-1))
-                    jREDdw = Ibits(jIMPdw,0,Norb*(Nsites-1))
-                    jTrUP  = Ibits(jIMPup,Norb*(Nsites-1),Nbig)
-                    jTrDW  = Ibits(jIMPdw,Norb*(Nsites-1),Nbig)
+                    jREDup = Ibits(jIMPup,0,Nred)
+                    jREDdw = Ibits(jIMPdw,0,Nred)
+                    jTrUP  = Ibits(jIMPup,Nred,Nbig)
+                    jTrDW  = Ibits(jIMPdw,Nred,Nbig)
                     if(jTrUP/=iTrUP.or.jTrDW/=iTrDW)cycle
                     io = (iREDup+1) + iREDdw*2**Nred
                     jo = (jREDup+1) + jREDdw*2**Nred
@@ -230,7 +231,7 @@ contains
       enddo
    enddo
    !
- end subroutine sitetrace
+ end subroutine subtrace
 
   
   !+------------------------------------------------------------------+

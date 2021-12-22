@@ -1,8 +1,9 @@
 NBATH = 1
-NLAT  = 4
+NLAT  = 5
 NORB  = 1
-NUP   = 4
-NDW   = 4
+NUP   = 5
+NDW   = 5
 
 VERBOSE=F
 FAST=T
+RANDOM=T
