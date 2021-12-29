@@ -2,7 +2,7 @@
 
 Minimal implementation of a fast-trace algorithm to compute reduced density matrices within quantum (cluster) impurity problems. Based on the [QcmPlab](https://github.com/QcmPlab) exact-diagonalization solvers, whose Fock-space structure is assumed. More specifically here we assume Sz-conservation, implemented in a generalized Lin-Gubernatis scheme. More info available [on the arXiv](https://arxiv.org/abs/2105.06806).
 
-The algorithm is fully included on the master branch of [QcmPlab/CDMFT-LANC-ED](https://github.com/QcmPlab/CDMFT-LANC-ED) since commit [ed4ba2d](https://github.com/QcmPlab/CDMFT-LANC-ED/commit/ed4ba2d798d31588da7675565e2dd0c1ce821744).
+The fast-trace algorithm has been fully included on the master branch of [QcmPlab/CDMFT-LANC-ED](https://github.com/QcmPlab/CDMFT-LANC-ED) since commit [97987fa](https://github.com/QcmPlab/CDMFT-LANC-ED/commit/97987fa39b47781cdf41a57f94731ad4aefc0619); the subtracing routine has been added with commit [ed4ba2d](https://github.com/QcmPlab/CDMFT-LANC-ED/commit/ed4ba2d798d31588da7675565e2dd0c1ce821744).
 
 #### Dependencies
 
