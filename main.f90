@@ -36,7 +36,7 @@ program testRDM_ED_NupNdw
   real(8),dimension(:,:),allocatable   :: reduced_density_matrix
   real(8),dimension(:,:),allocatable   :: big_density_matrix
   real(8),dimension(:,:),allocatable   :: small_density_matrix
-  real(8)                              :: peso
+  real(8)                              :: peso,delta
   real(8),dimension(:),allocatable     :: dens,dens_up,dens_dw
   real(8),dimension(:),allocatable     :: docc
 
@@ -357,27 +357,38 @@ program testRDM_ED_NupNdw
      !<From cluster-dm to all reduced dms [increasing Ntrace]
      call subtrace(reduced_density_matrix,impurity_density_matrix,Nlat,Nlat-k)
      DIM = size(reduced_density_matrix(:,1)) 
-     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [DIRECT]" 
-     do i=1,DIM
-        !PRINT REDUCED MATRIX
-        write(*,"(1000F7.3)")(reduced_density_matrix(i,j),j=1,DIM) 
-     enddo
+     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [DIRECT]"
+     if(verbose)then 
+         do i=1,DIM
+            !PRINT REDUCED MATRIX [DIRECT]
+            write(*,"(1000F7.3)")(reduced_density_matrix(i,j),j=1,DIM) 
+         enddo
+     else
+         print*, "(no print)"
+     endif
      !<From cluster-dm to all reduced dms [site by site]
      call subtrace(small_density_matrix,big_density_matrix,Nlat-k+1,Nlat-k)
      DIM = size(small_density_matrix(:,1)) 
-     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [ITERATIVE]"  
-     do i=1,DIM
-        !PRINT REDUCED MATRIX
-        write(*,"(1000F7.3)")(small_density_matrix(i,j),j=1,DIM) 
-     enddo
+     write(*,"(A,2I3,A,I10)") ">rank-"//str(DIM)//" [ITERATIVE]" 
+     if(verbose)then 
+         do i=1,DIM
+            !PRINT REDUCED MATRIX [ITERATIVE]
+            write(*,"(1000F7.3)")(small_density_matrix(i,j),j=1,DIM) 
+         enddo
+      else
+         print*, "(no print)" 
+      endif
      !>CROSSCHECK ALGORITHMS
-     print*,    "****************************************************"
-     if( any(abs(reduced_density_matrix-small_density_matrix)>0.00001d0) )then
+     print*,   "**************************************************************"
+     delta = maxval(abs(reduced_density_matrix-small_density_matrix))
+     if(delta > 0.00001d0)then
        print*, "ERROR: DIRECT and ITERATIVE subtracings fail to match"
+     elseif(delta == 0.d0)then
+       print*, "DIRECT and ITERATIVE subtracings match up to machine precision" 
      else
-       print*, "DIRECT and ITERATIVE subtracings match up to e-05"
+       print*, "DIRECT and ITERATIVE subtracings match up to:",real(delta)
      endif
-    print*,    "*****************************************************"
+    print*,    "**************************************************************"
     !
     deallocate(big_density_matrix)
     big_density_matrix = small_density_matrix
